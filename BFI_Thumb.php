@@ -389,6 +389,7 @@ class BFI_Thumb_1_3 {
      *          'grayscale' bool
      *          'crop' bool
      *          'negate' bool
+     *          'quality' int 1-100
      * @param $single boolean, if false then an array of data will be returned
      * @return string|array
      */
@@ -463,7 +464,8 @@ class BFI_Thumb_1_3 {
             (isset($color) ? str_pad(preg_replace('#^\##', '', $color), 8, '0', STR_PAD_LEFT) : '00000000') .
             (isset($grayscale) ? ($grayscale ? '1' : '0') : '0') .
             (isset($crop) ? ($crop ? '1' : '0') : '0') .
-            (isset($negate) ? ($negate ? '1' : '0') : '0');
+            (isset($negate) ? ($negate ? '1' : '0') : '0').
+            ( (isset($quality) && $quality > 0 && $quality <= 100 ) ? ($quality ? (string)$quality : '0') : '0');
         $suffix = self::base_convert_arbitrary($suffix, 10, 36);
 
         // use this to check if cropped image already exists, so we can return that instead
@@ -534,6 +536,11 @@ class BFI_Thumb_1_3 {
                 if ( is_wp_error( $editor->colorize( $color ) ) ) {
                     return false;
                 }
+            }
+
+            // set the image quality (1-100) to save this image at
+            if ( $quality && $ext != 'png' ) {
+              $editor->set_quality( $quality );
             }
 
             // save our new image
