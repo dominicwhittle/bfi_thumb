@@ -29,6 +29,7 @@
  *          'grayscale' bool
  *          'negate' bool
  *          'crop' bool
+ *          'quality' int 1-100
  * @param $single boolean, if false then an array of data will be returned
  * @return string|array containing the url of the resized modofied image
  */
