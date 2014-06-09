@@ -1,5 +1,5 @@
-bfi_thumb v1.3
-==============
+bfi_thumb v1.3.1
+================
 
 On the fly image resizer / cropper / grayscaler / colorizer / opacitor :) for WordPress
 
@@ -16,8 +16,26 @@ Bfi_thumb resizes image on the fly using WordPress' Image Editor classes, thus s
 * Negate
 * Resize images down or UP
 * Image Quality (1-100) *NEW
+* Crop offsets as percentages e.g., array( 0.2, 0.8 ) * NEW
 
 The code was inspired by the awesome [Aqua Resizer](https://github.com/sy4mil/Aqua-Resizer/blob/master/aq_resizer.php)
+
+
+New Features (as of v1.3.1)
+===========================
+
+You can now specify an image quality as a parameter on a per-jpeg-image basis; e.g., `<img src="<?= bfi_thumb( $src, array( 'quality' => 20 ) ) ?>" alt />`  
+It's particularly useful with a retina image approach or using `picture` markup because you can spec your hi-res image at a lower quality to keep file size down.
+
+Note that while we're talking about image compression, the parameter is 'quality', with 100 being lossless and 1 being worst quality (most compression).
+
+Also added is the ability to specify a point to crop to as a "percentage". This is much like WP's `array( left, top )` crop direction option but we have the fidelity to crop to 20% from the left edge, 90% from the top like so: `array( 0.2, 0.9 )`.
+
+Default is 0.5, 0.5 which crops to center so the BFI default behaviour hasn't changed.
+
+To be honest, this is a little bit useless without a dashboard UI for specifying the point of focus to crop to. I'll look into that when I get a chance. 
+
+
 
 Where do I use this?
 ====================

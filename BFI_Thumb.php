@@ -28,10 +28,10 @@
  *          'color' string hex-color #000000-#ffffff
  *          'grayscale' bool
  *          'negate' bool
- *          'crop' bool
+ *          'crop' bool|array
  *          'quality' int 1-100
  * @param $single boolean, if false then an array of data will be returned
- * @return string|array containing the url of the resized modofied image
+ * @return string|array containing the url of the resized modified image
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -388,7 +388,7 @@ class BFI_Thumb_1_3 {
      *          'opacity' int 0-100
      *          'color' string hex-color #000000-#ffffff
      *          'grayscale' bool
-     *          'crop' bool
+     *          'crop' bool|array
      *          'negate' bool
      *          'quality' int 1-100
      * @param $single boolean, if false then an array of data will be returned
@@ -464,7 +464,7 @@ class BFI_Thumb_1_3 {
             (isset($opacity) ? str_pad((string)$opacity, 3, '0', STR_PAD_LEFT) : '100') .
             (isset($color) ? str_pad(preg_replace('#^\##', '', $color), 8, '0', STR_PAD_LEFT) : '00000000') .
             (isset($grayscale) ? ($grayscale ? '1' : '0') : '0') .
-            (isset($crop) ? ($crop ? '1' : '0') : '0') .
+            (isset($crop) ? ( is_array($crop) ? join('',$crop) : '0' ) : '0') .
             (isset($negate) ? ($negate ? '1' : '0') : '0').
             ( (isset($quality) && $quality > 0 && $quality <= 100 ) ? ($quality ? (string)$quality : '0') : '0');
         $suffix = self::base_convert_arbitrary($suffix, 10, 36);
@@ -540,8 +540,8 @@ class BFI_Thumb_1_3 {
             }
 
             // set the image quality (1-100) to save this image at
-            if ( $quality > 0 && $quality <= 100 && $ext != 'png' ) {
-              $editor->set_quality( $quality );
+            if ( $quality && $ext != 'png' ) {
+                $editor->set_quality( $quality );
             }
 
             // save our new image
@@ -607,7 +607,7 @@ class BFI_Thumb_1_3 {
 // don't use the default resizer since we want to allow resizing to larger sizes (than the original one)
 // Parts are copied from media.php
 // Crop is always applied (just like timthumb)
-add_filter('image_resize_dimensions', 'bfi_image_resize_dimensions', 10, 5);
+add_filter('image_resize_dimensions', 'bfi_image_resize_dimensions', 10, 6);
 if ( !function_exists( 'bfi_image_resize_dimensions' ) ) {
 function bfi_image_resize_dimensions($payload, $orig_w, $orig_h, $dest_w, $dest_h, $crop = false) {
     $aspect_ratio = $orig_w / $orig_h;
@@ -627,8 +627,40 @@ function bfi_image_resize_dimensions($payload, $orig_w, $orig_h, $dest_w, $dest_
 
     $crop_w = round($new_w / $size_ratio);
     $crop_h = round($new_h / $size_ratio);
-    $s_x = floor( ($orig_w - $crop_w) / 2 );
-    $s_y = floor( ($orig_h - $crop_h) / 2 );
+
+
+    // Crop from offsets (left, top) as percentages
+
+    if ( ! is_array( $crop ) || count( $crop ) !== 2 ){
+        $crop = array( 0.5, 0.5 );
+        // defaults are equivelant to center, center.
+    }
+
+    list( $x, $y ) = $crop;
+
+    // Ideal offsets
+    $ideal_s_x = $orig_w * $x - ( $crop_w / 2 );
+    $ideal_s_y = $orig_h * $y - ( $new_h / 2 );
+
+    // Ideally we can point ouf x,y point of focus perfectly in the middle.
+    // But to put a top left corner (for example) in the center we end up black
+    // strips where there isn't enough image.
+    // This maths takes our ideal offsets and gets as close to it as possible.
+    if ( $ideal_s_x > ( $orig_w - $crop_w ) ):
+        $s_x = floor( $orig_w - $crop_w );
+    elseif ( $ideal_s_x < 0 ):
+        $s_x = 0;
+    else:
+        $s_x = floor( $ideal_s_x );
+    endif;
+
+    if ( $ideal_s_y > ( $orig_h - $crop_h ) ):
+        $s_y = floor( $orig_h - $crop_h );
+    elseif ( $ideal_s_y < 0 ):
+        $s_y = 0;
+    else:
+        $s_y = floor( $ideal_s_y );
+    endif;
 
     // the return array matches the parameters to imagecopyresampled()
     // int dst_x, int dst_y, int src_x, int src_y, int dst_w, int dst_h, int src_w, int src_h
