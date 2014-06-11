@@ -639,27 +639,29 @@ function bfi_image_resize_dimensions($payload, $orig_w, $orig_h, $dest_w, $dest_
     list( $x, $y ) = $crop;
 
     // Ideal offsets
-    $ideal_s_x = $orig_w * $x - ( $crop_w / 2 );
-    $ideal_s_y = $orig_h * $y - ( $new_h / 2 );
+    $ideal_s_x = $x * $orig_w - ( $crop_w / 2 );
+    $ideal_s_y = $y * $orig_h - ( $crop_h / 2 );
 
-    // Ideally we can point ouf x,y point of focus perfectly in the middle.
-    // But to put a top left corner (for example) in the center we end up black
-    // strips where there isn't enough image.
+    // Ideally we want our x,y crop-focus-point perfectly in the middle...
+    // but to put (for example) the top left corner in the centre of our cropped
+    // image we end up with black strips where there isn't enough image on the
+    // left and top.
     // This maths takes our ideal offsets and gets as close to it as possible.
-    if ( $ideal_s_x > ( $orig_w - $crop_w ) ):
-        $s_x = floor( $orig_w - $crop_w );
-    elseif ( $ideal_s_x < 0 ):
-        $s_x = 0;
+
+    if ( $ideal_s_x < 0 ):
+      $s_x = 0;
+    elseif ( $ideal_s_x + $crop_w > $orig_w ):
+      $s_x = $orig_w - $crop_w;
     else:
-        $s_x = floor( $ideal_s_x );
+      $s_x = floor( $ideal_s_x );
     endif;
 
-    if ( $ideal_s_y > ( $orig_h - $crop_h ) ):
-        $s_y = floor( $orig_h - $crop_h );
-    elseif ( $ideal_s_y < 0 ):
-        $s_y = 0;
+    if ( $ideal_s_y < 0 ):
+      $s_y = 0;
+    elseif ( $ideal_s_y + $crop_h > $orig_h ):
+      $s_y = $orig_h - $crop_h;
     else:
-        $s_y = floor( $ideal_s_y );
+      $s_y = floor( $ideal_s_y );
     endif;
 
     // the return array matches the parameters to imagecopyresampled()
