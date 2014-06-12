@@ -2,6 +2,8 @@
 /*
  * bfi_thumb - WP Image Resizer v1.3
  *
+ * This version forked by Dominic Whittle / Weekends
+ *
  * (c) 2013 Benjamin F. Intal / Gambit
  *
  * This program is free software: you can redistribute it and/or modify
